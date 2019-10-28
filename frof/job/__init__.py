@@ -10,7 +10,6 @@ class BashJob(Job):
         self.cmd = cmd
 
     async def run(self):
-        print(self.cmd, flush=True)
         process = await asyncio.create_subprocess_shell(self.cmd)
         _ = await process.communicate()
 

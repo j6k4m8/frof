@@ -19,7 +19,7 @@ A -> B -> C
 Aa -> B
 
 A: sleep 1
-Aa: sleep 6
+Aa: sleep 2
 B: sleep 1
 C: sleep 1
 """
