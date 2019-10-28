@@ -1,4 +1,4 @@
-import subprocess
+import asyncio
 
 
 class Job:
@@ -7,11 +7,12 @@ class Job:
 
 class BashJob(Job):
     def __init__(self, cmd: str) -> None:
-        self.cmd = cmd.split()
+        self.cmd = cmd
 
-    def run(self) -> bool:
-        subprocess.check_output(self.cmd)
-        return True
+    async def run(self):
+        print(self.cmd, flush=True)
+        process = await asyncio.create_subprocess_shell(self.cmd)
+        _ = await process.communicate()
 
     def __str__(self) -> str:
         return f"<{self.cmd[:10]}>"

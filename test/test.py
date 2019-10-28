@@ -16,10 +16,12 @@ import networkx as nx
 
 FROF = """
 A -> B -> C
+Aa -> B
 
-A: sleep 1 && touch a
-B: sleep 2 && touch b
-C: touch c
+A: sleep 1
+Aa: sleep 6
+B: sleep 1
+C: sleep 1
 """
 
 fp = FrofPlan(FROF)
