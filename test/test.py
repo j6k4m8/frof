@@ -1,6 +1,7 @@
 from frof import FrofPlan
-from frof.job import BashJob
-import networkx as nx
+
+# from frof.job import BashJob
+# import networkx as nx
 
 # a = BashJob("ls .")
 # b = BashJob("touch b.txt")
@@ -14,16 +15,17 @@ import networkx as nx
 
 # fp = FrofPlan(network=g)
 
-FROF = """
-A -> B -> C
-Aa -> B
+# fp = FrofPlan(FROF)
 
-A: sleep 1
-Aa: sleep 2
-B: sleep 1
-C: sleep 1
-"""
+# fp.run()
 
-fp = FrofPlan(FROF)
+################
 
+# FROF = """
+# A -> [2] B -> C
+# A
+# """
+
+# FrofPlan(FROF)
+fp = FrofPlan("sample.frof")
 fp.run()

@@ -8,17 +8,32 @@ start: line+
 line        : COMMENT
             | edgelist
             | definition
+            | param_defn
 
-edgelist    : VARNAME ("->" VARNAME)+
+edgelist    : jobname ("->" jobname)+
+
+
+?jobname    : VARNAME
+            | VARNAME"(" params ")"
+
+params      : (param)+
+
+?param      : "&" PARAMNAME "[" SIGNED_NUMBER "]"
+            | "&" PARAMNAME
+
+PARAMNAME   : VARNAME
 
 definition  : VARNAME ":" command
-?command     : NONESCAPED_STRING
+
+param_defn  : "&" PARAMNAME ":" param_cmd
+
+?param_cmd  : NONESCAPED_STRING
+?command    : NONESCAPED_STRING
 
 VARNAME     : /[a-zA-Z_-]\w*/
 
 COMMENT     : /#.*/
 
-%import common.ESCAPED_STRING
 %import common.SIGNED_NUMBER
 %import common.WS
 %ignore COMMENT
@@ -32,17 +47,46 @@ frof_parser = Lark(SYNTAX)
 class FrofTransformer(Transformer):
     def __init__(self, *args, **kwargs) -> None:
         self.G = nx.DiGraph()
+        self._params = {}
+        self._job_param_assignments = {}
         super().__init__(*args, **kwargs)
 
     def transform(self, tree):
         self._transform_tree(tree)
-        return self.G
 
-    # def line(self, line):
-    #     return line
+        for jobname, paramname in self._job_param_assignments.items():
+            job = self.G.node[jobname]
+            ins = [u for u, v in self.G.in_edges(jobname)]
+            outs = [v for u, v in self.G.out_edges(jobname)]
+            for option in self._params[paramname]:
+                self.G.add_node(
+                    f"{jobname}_{option}",
+                    job=BashJob(job["job"].cmd, env={"FROF_JOB_PARAM": option}),
+                )
+                for i in ins:
+                    self.G.add_edge(i, f"{jobname}_{option}")
+                for i in outs:
+                    self.G.add_edge(f"{jobname}_{option}", i)
+            self.G.remove_node(jobname)
+        return self.G
 
     def edgelist(self, edgelist):
         self.G.add_path([str(e) for e in edgelist])
+
+    def jobname(self, jobname):
+        jobname, param_set = jobname
+        for param in param_set:
+            self._job_param_assignments[str(jobname)] = param
+        return jobname
+
+    def params(self, params):
+        for param in params:
+            self._params[str(param)] = {}
+        return [str(p) for p in params]
+
+    def param_defn(self, param_defn):
+        param, param_defn = param_defn
+        self._params[str(param)] = eval(str(param_defn))
 
     def definition(self, definition):
         key, command = definition

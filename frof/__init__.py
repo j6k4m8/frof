@@ -1,6 +1,9 @@
 from typing import List
+
+import os
 import abc
 import copy
+import time
 import networkx as nx
 from .parser import FrofParser
 import asyncio
@@ -28,11 +31,19 @@ class OneLineStatusPrinter(StatusPrinter):
             f"{emoji}\t {next_job_count} jobs running, {remaining} remaining.", end="\r"
         )
 
+    def launch_status(self):
+        print(f"Starting job with {len(self.fp.network)} jobs total.", end="\r")
+
 
 class FrofPlan:
     def __init__(self, frof, status=OneLineStatusPrinter):
         if isinstance(frof, str):
-            self.network = FrofParser().parse(frof)
+            if "\n" not in frof:
+                try:
+                    with open(os.path.expanduser(frof), "r") as fh:
+                        self.network = FrofParser().parse(fh.read())
+                except FileNotFoundError:
+                    self.network = FrofParser().parse(frof)
         else:
             self.network = frof
 
@@ -48,10 +59,21 @@ class FrofPlan:
 
     def run(self):
         self.current_network = copy.deepcopy(self.network)
+        self.status.launch_status()
         while len(self.current_network):
             current_jobs = self.get_next_jobs()
             loop = asyncio.get_event_loop()
-            jobs = asyncio.gather(*[job.run() for i, job in current_jobs])
+            jobs = asyncio.gather(
+                *[
+                    job.run(
+                        env_vars={
+                            "FROF_BATCH_ITER": str(itercounter),
+                            "FROF_JOB_NAME": str(i),
+                        }
+                    )
+                    for itercounter, (i, job) in enumerate(current_jobs)
+                ]
+            )
             _ = loop.run_until_complete(jobs)
             for (i, _) in current_jobs:
                 self.current_network.remove_node(i)

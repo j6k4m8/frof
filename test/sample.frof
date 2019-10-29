@@ -1,0 +1,10 @@
+
+A -> Aa -> Ab -> B(&my_var) -> C
+
+A:      sleep 1
+Aa:     sleep 1
+Ab:     rm A.txt
+B:      echo $FROF_JOB_PARAM >> A.txt
+C:      sleep 5
+
+&my_var: ["FOO", "BAR", "BAZ"]
