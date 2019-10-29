@@ -49,6 +49,7 @@ class FrofTransformer(Transformer):
         self.G = nx.DiGraph()
         self._params = {}
         self._job_param_assignments = {}
+        self.interpolation_enabled = True
         super().__init__(*args, **kwargs)
 
     def transform(self, tree):
@@ -58,10 +59,14 @@ class FrofTransformer(Transformer):
             job = self.G.node[jobname]
             ins = [u for u, v in self.G.in_edges(jobname)]
             outs = [v for u, v in self.G.out_edges(jobname)]
+
             for option in self._params[paramname]:
+                job_text = job["job"].cmd
+                if self.interpolation_enabled:
+                    job_text = job_text.replace("{{&" + paramname + "}}", option)
                 self.G.add_node(
                     f"{jobname}_{option}",
-                    job=BashJob(job["job"].cmd, env={"FROF_JOB_PARAM": option}),
+                    job=BashJob(job_text, env={"FROF_JOB_PARAM": option}),
                 )
                 for i in ins:
                     self.G.add_edge(i, f"{jobname}_{option}")
@@ -81,7 +86,8 @@ class FrofTransformer(Transformer):
 
     def params(self, params):
         for param in params:
-            self._params[str(param)] = {}
+            if str(param) not in self._params:
+                self._params[str(param)] = {}
         return [str(p) for p in params]
 
     def param_defn(self, param_defn):

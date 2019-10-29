@@ -1,0 +1,8 @@
+get_DNA -> count_base(&bases) -> collect_results -> clean_up(&bases)
+
+get_DNA:            python3 -c 'import random; print("".join(random.choice("ATGC") for _ in range(100)))' > DNA.txt
+count_base:         python3 -c 'import os; print("{{&bases}} =", len([i for i in open("DNA.txt", "r").read() if i == "{{&bases}}"]))' > {{&bases}}
+collect_results:    cat A T G C > results.txt
+clean_up:           rm {{&bases}}
+
+&bases:      ["A", "T", "G", "C"]

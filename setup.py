@@ -84,7 +84,7 @@ setup(
     python_requires=REQUIRES_PYTHON,
     url=URL,
     packages=find_packages(exclude=("tests",)),
-    scripts=[],
+    scripts=["bin/frof"],
     install_requires=REQUIRED,
     extras_require={"dev": DEVELOPING_REQS},
     include_package_data=True,
