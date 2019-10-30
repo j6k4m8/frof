@@ -78,3 +78,14 @@ class FrofPlan:
             for (i, _) in current_jobs:
                 self.current_network.remove_node(i)
             self.status.emit_status()
+
+    def print_plan(self):
+        self.current_network = copy.deepcopy(self.network)
+        self.status.launch_status()
+        while len(self.current_network):
+            current_jobs = self.get_next_jobs()
+            for c in current_jobs:
+                print(c)
+            for (i, _) in current_jobs:
+                self.current_network.remove_node(i)
+            print("\n")

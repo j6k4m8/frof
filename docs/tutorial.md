@@ -45,7 +45,7 @@ There is a clever part here and a silly part here:
 
 The clever part is that frof will see that `get_DNA` is repeated in multiple edges, and since it's the same job referenced in each line, it'll only run it once. Clever!
 
-The silly part is that we have four identical jobs — with the exception of which base they're counting. We can easily fix this by using frof variables. In particular, we'll use the `FROF_JOB_PARAM` variable, _like so_:
+The silly part is that we have four identical jobs — with the exception of which base they're counting. We can easily fix this by using frof variables, _like so_:
 
 ```yml
 get_DNA -> count_base(&bases)
@@ -80,4 +80,4 @@ clean_up:           rm {{&bases}}
 
 Note that the final step could also be written `rm A T G C`, but we got to re-use our `&bases` definition in a second job! And that's neat.
 
-When our team eventually collects real sequences, we can simply replace the definition of `get_DNA` with the real deal. And if it turns out that it takes more than a few steps to get our hands on that sequence, we can even call another frof file from within this frof file ([[Tutorial Forthcoming]](#)). frofs within frofs! That's why it's called that, ya?
+When our team eventually collects real sequences, we can simply replace the definition of `get_DNA` with the real deal. And if it turns out that it takes more than a few steps to get our hands on that sequence, we can even call another frof file from within this frof file ([[Tutorial Forthcoming]](#)). frofs running other frofs! That's why it's called that, ya?

@@ -22,3 +22,15 @@ class BashJob(Job):
 
     def __str__(self) -> str:
         return f"<{self.cmd[:10]}>"
+
+
+class NullJob(Job):
+    def __init__(self) -> None:
+        pass
+
+    async def run(self, env_vars=None):
+        process = await asyncio.create_subprocess_shell("#", env=env_vars)
+        _ = await process.communicate()
+
+    def __str__(self) -> str:
+        return f"<NullJob>"
