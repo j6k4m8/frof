@@ -7,6 +7,7 @@ import time
 import networkx as nx
 from .parser import FrofParser
 import asyncio
+import uuid
 
 
 class StatusPrinter(abc.ABC):
@@ -37,6 +38,7 @@ class OneLineStatusPrinter(StatusPrinter):
 
 class FrofPlan:
     def __init__(self, frof, status=OneLineStatusPrinter):
+        self.plan_id = uuid.uuid4()
         if isinstance(frof, str):
             if "\n" not in frof:
                 try:
@@ -58,6 +60,7 @@ class FrofPlan:
         ]
 
     def run(self):
+        run_id = uuid.uuid4()
         self.current_network = copy.deepcopy(self.network)
         self.status.launch_status()
         while len(self.current_network):
@@ -69,6 +72,8 @@ class FrofPlan:
                         env_vars={
                             "FROF_BATCH_ITER": str(itercounter),
                             "FROF_JOB_NAME": str(i),
+                            "FROF_RUN_ID": run_id,
+                            "FROF_PLAN_ID": self.plan_id
                         }
                     )
                     for itercounter, (i, job) in enumerate(current_jobs)
