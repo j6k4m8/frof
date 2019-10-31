@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 
-from frof import FrofPlan, LocalFrofExecutor
+from frof import LocalFrofExecutor
 import sys
 import os
 
-fp = FrofPlan(os.path.expanduser(sys.argv[-1]))
-fe = LocalFrofExecutor(fp)
+fe = LocalFrofExecutor(os.path.expanduser(sys.argv[-1]))
 fe.execute()
