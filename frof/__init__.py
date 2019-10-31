@@ -186,19 +186,28 @@ class LocalFrofExecutor(FrofExecutor):
     """
 
     def __init__(
-        self, fp: "FrofPlan", status_monitor: Callable = OneLineStatusMonitor
+        self,
+        fp: Union["FrofPlan", str, nx.DiGraph],
+        status_monitor: Callable = OneLineStatusMonitor,
     ) -> None:
         """
         Create a new LocalFrofExecutor.
 
         Arguments:
-            fp (FrofPlan): The FrofPlan to execute. Should already be populated
-                with a FrofPlan#network attribute.
-            status_monitor (StatusMonitor): Constructor for the StatusMonitor
-                to use to track progress in this execution.
+            fp (FrofPlan): The FrofPlan to execute. You can pass a string,
+                nx.DiGraph, or FrofPlan. An initialized FrofPlan should already
+                be populated with a FrofPlan#network attribute. Otherwise, all
+                other argument types will be passed directly to the default
+                FrofPlan constructor.
+            status_monitor (StatusMonitor: OneLineStatusMonitor): Constructor
+                for the StatusMonitor to use to track progress in this
+                execution. Defaults to the OneLineStatusMonitor.
 
         """
-        self.fp = fp
+        if isinstance(fp, FrofPlan):
+            self.fp = fp
+        else:
+            self.fp = FrofPlan(fp)
         self.status_monitor = status_monitor(self)
         self.current_network = nx.DiGraph()
 
