@@ -1,5 +1,6 @@
-# frof
-frof runs other frofs
+<p align=center><img align=center src='docs/frof.png' width=200 /></p>
+<h6 align=center>frof runs other frofs</h6>
+<h3 align=center></h3>
 
 frof is a tool to schedule multiple jobs to run in parallel or sequentially. it doesn't care what tech you use; it just waits for previous tasks to finish and then runs the next command.
 
