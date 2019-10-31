@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Callable, Union, Tuple
 
 import os
 import abc
@@ -10,9 +10,9 @@ import asyncio
 import uuid
 
 
-class StatusPrinter(abc.ABC):
+class StatusMonitor(abc.ABC):
     """
-    Abstract class for status-printing capabilities.
+    Abstract class for status-monitoring capabilities.
 
     Do not use directly.
     """
@@ -33,9 +33,9 @@ class StatusPrinter(abc.ABC):
         ...
 
 
-class OneLineStatusPrinter(StatusPrinter):
+class OneLineStatusMonitor(StatusMonitor):
     """
-    A status printer that keeps itself constrainted to a single line.
+    A status monitor that keeps itself constrainted to a single line.
 
     Good for running in a CLI.
     During a run, prints:
@@ -52,24 +52,24 @@ class OneLineStatusPrinter(StatusPrinter):
 
     """
 
-    def __init__(self, fp: "FrofPlan") -> None:
+    def __init__(self, fe: "FrofExecutor") -> None:
         """
-        Create a new OneLineStatusPrinter.
+        Create a new OneLineStatusMonitor.
 
 
 
         Arguments:
-            fp (FrofPlan): The Plan to print for during runs
+            fe (FrofExecutor): The Executor to print for during runs
 
         Returns:
             None
 
         """
-        self.fp = fp
+        self.fe = fe
 
     def emit_status(self):
         """
-        Emit the current status of self.fp.
+        Emit the current status of self.fe.
 
         Prints directly to stdout. Uses emojis. This is not the most backward-
         compatible of all systems.
@@ -81,12 +81,12 @@ class OneLineStatusPrinter(StatusPrinter):
             None
 
         """
-        next_job_count = len(self.fp.get_next_jobs())
+        next_job_count = len(self.fe.get_next_jobs())
         if next_job_count:
             emoji = "🤔"
         else:
             emoji = "👌"
-        remaining = len(self.fp.current_network)
+        remaining = len(self.fe.get_current_network())
         print(
             f"{emoji}\t {next_job_count} jobs running, {remaining} remaining.", end="\r"
         )
@@ -102,7 +102,7 @@ class OneLineStatusPrinter(StatusPrinter):
             None
 
         """
-        print(f"Starting job with {len(self.fp.network)} jobs total.", end="\r")
+        print(f"Starting job with {len(self.fe.get_network())} jobs total.", end="\r")
 
 
 class FrofPlan:
@@ -119,7 +119,7 @@ class FrofPlan:
 
     """
 
-    def __init__(self, frof, status=OneLineStatusPrinter):
+    def __init__(self, frof):
         """
         Create a new FrofPlan.
 
@@ -127,13 +127,12 @@ class FrofPlan:
             frof (Union[str, nx.DiGraph]): The job network to run. Can be a
                 network, designed manually, or a string representation of a
                 plan, OR the name of a file to read for the plan.
-            status (StatusPrinter): The StatusPrinter to use for this plan.
 
         Returns:
             None
 
         """
-        self.plan_id = uuid.uuid4()
+        self.plan_id = str(uuid.uuid4())
         if isinstance(frof, str):
             if "\n" not in frof:
                 try:
@@ -144,8 +143,90 @@ class FrofPlan:
         else:
             self.network = frof
 
+    def as_networkx(self):
+        """
+        Return this Plan as a NetworkX graph.
+
+        Arguments:
+            None
+
+        Returns:
+            nx.DiGraph: This plan network
+
+        """
+        return copy.deepcopy(self.network)
+
+
+class FrofExecutor(abc.ABC):
+    """
+    FrofExecutors are responsible for converting a Plan to actual runtime.
+
+    There might be, for example, a LocalFrofExecutor, a ClusterFrofExecutor...
+    This is the abstract base class; do not use this class directly.
+    """
+
+    ...
+
+    def get_next_jobs(self) -> List:
+        ...
+
+    def get_current_network(self) -> nx.DiGraph:
+        ...
+
+    def get_network(self) -> nx.DiGraph:
+        ...
+
+
+class LocalFrofExecutor(FrofExecutor):
+    """
+    A FrofExecutor that runs tasks locally in the current bash shell.
+
+    This is useful for get-it-done ease of use, but may not be the most
+    powerful way to schedule tasks...
+    """
+
+    def __init__(
+        self, fp: "FrofPlan", status_monitor: Callable = OneLineStatusMonitor
+    ) -> None:
+        """
+        Create a new LocalFrofExecutor.
+
+        Arguments:
+            fp (FrofPlan): The FrofPlan to execute. Should already be populated
+                with a FrofPlan#network attribute.
+            status_monitor (StatusMonitor): Constructor for the StatusMonitor
+                to use to track progress in this execution.
+
+        """
+        self.fp = fp
+        self.status_monitor = status_monitor(self)
         self.current_network = nx.DiGraph()
-        self.status = status(self)
+
+    def get_current_network(self) -> nx.DiGraph:
+        """
+        Get a pointer to the current_network of this execution.
+
+        Arguments:
+            None
+
+        Returns:
+            nx.DiGraph: The current (mutable) network of this execution
+
+        """
+        return self.current_network
+
+    def get_network(self) -> nx.DiGraph:
+        """
+        Get a pointer to the unchanged, original network plan.
+
+        Arguments:
+            None
+
+        Returns:
+            nx.DiGraph: The (mutable) network plan for this execution
+
+        """
+        return self.fp.network
 
     def get_next_jobs(self) -> List:
         """
@@ -164,9 +245,9 @@ class FrofPlan:
             if self.current_network.in_degree(i) == 0
         ]
 
-    def run(self):
+    def execute(self) -> None:
         """
-        Run the plan.
+        Execute the FrofPlan locally, using the current shell.
 
         Arguments:
             None
@@ -175,9 +256,9 @@ class FrofPlan:
             None
 
         """
-        run_id = uuid.uuid4()
-        self.current_network = copy.deepcopy(self.network)
-        self.status.launch_status()
+        run_id = str(uuid.uuid4())
+        self.current_network = copy.deepcopy(self.fp.network)
+        self.status_monitor.launch_status()
         while len(self.current_network):
             current_jobs = self.get_next_jobs()
             loop = asyncio.get_event_loop()
@@ -188,7 +269,7 @@ class FrofPlan:
                             "FROF_BATCH_ITER": str(itercounter),
                             "FROF_JOB_NAME": str(i),
                             "FROF_RUN_ID": run_id,
-                            "FROF_PLAN_ID": self.plan_id,
+                            "FROF_PLAN_ID": self.fp.plan_id,
                         }
                     )
                     for itercounter, (i, job) in enumerate(current_jobs)
@@ -197,20 +278,4 @@ class FrofPlan:
             _ = loop.run_until_complete(jobs)
             for (i, _) in current_jobs:
                 self.current_network.remove_node(i)
-            self.status.emit_status()
-
-    def print_plan(self):
-        """
-        Print the plan as text.
-
-        Useful for debugging.
-        """
-        self.current_network = copy.deepcopy(self.network)
-        self.status.launch_status()
-        while len(self.current_network):
-            current_jobs = self.get_next_jobs()
-            for c in current_jobs:
-                print(c)
-            for (i, _) in current_jobs:
-                self.current_network.remove_node(i)
-            print("\n")
+            self.status_monitor.emit_status()

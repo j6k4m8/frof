@@ -1,0 +1,4 @@
+A -> B
+
+A: echo "test" > ${FROF_PLAN_ID}-child.txt
+B: sleep 1

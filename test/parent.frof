@@ -1,0 +1,5 @@
+A -> child -> C
+
+A: sleep 1
+child: frof child.frof
+C: sleep 1
