@@ -1,6 +1,6 @@
 # types of variables
 
-There are two types of variables in a frof workflow; an environment variable, which works the way you'd expect; and _interpolated variables_, which are user-defined (read: you-defined) and can be (optionally) injected directly into the text of a command at runtime. For an explanation of interpolated variables, how to use them, and some gotchas, check out _[Interpolation](Interpolation.md)_.
+There are two types of variables in a frof workflow; environment variables, which work the way you'd expect; and _interpolated variables_, which are user-defined (read: you-defined) and can be (optionally) injected directly into the text of a command at runtime. For an explanation of interpolated variables, how to use them, and some gotchas, check out _[Interpolation](Interpolation.md)_.
 
 ## common environment variables
 
