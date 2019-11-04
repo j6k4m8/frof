@@ -23,6 +23,9 @@ class BashJob(Job):
     def __str__(self) -> str:
         return f"<{self.cmd[:10]}>"
 
+    def __repr__(self) -> str:
+        return f"<{self.cmd[:10]}>"
+
 
 class NullJob(Job):
     """
@@ -52,4 +55,4 @@ class NullJob(Job):
         _ = await process.communicate()
 
     def __str__(self) -> str:
-        return "<NullJob>" if delay is 0 else "<NullJob delay={delay}s>"
+        return "<NullJob>" if self.delay is 0 else "<NullJob delay={delay}s>"

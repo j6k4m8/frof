@@ -1,0 +1,6 @@
+A(&iter, 4) -> B
+
+A: frof DNA.txt
+B: ls
+
+&iter: list(range(1000))

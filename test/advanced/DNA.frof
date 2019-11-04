@@ -1,0 +1,8 @@
+get_DNA -> count_base(&bases) -> collect_results -> clean_up(&bases)
+
+get_DNA:            ./getDNA.py > ${FROF_PLAN_ID}-DNA.txt
+count_base:         ./countBases.py > ${FROF_PLAN_ID}-{{&bases}}
+collect_results:    cat ${FROF_PLAN_ID}-A ${FROF_PLAN_ID}-T ${FROF_PLAN_ID}-G ${FROF_PLAN_ID}-C > ${FROF_PLAN_ID}-results.txt
+clean_up:           rm ${FROF_PLAN_ID}-{{&bases}}
+
+&bases:      ["A", "T", "G", "C"]

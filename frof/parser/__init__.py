@@ -84,7 +84,7 @@ class FrofTransformer(Transformer):
 
             parallelism_group = str(uuid.uuid4())
             for option in self._params[paramname]:
-                job_text = job["job"].cmd.replace("{{&" + paramname + "}}", option)
+                job_text = job["job"].cmd.replace("{{&" + paramname + "}}", str(option))
                 self.G.add_node(
                     f"{jobname}_{option}",
                     max_parallel_count=max_parallel_count,
