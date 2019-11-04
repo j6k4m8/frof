@@ -2,7 +2,7 @@ main -> done
 jobs -> done
 parser -> done
 
-done:   echo "Done."
+done:   echo "Automatically generated docs at `date`."
 main:   docshund frof/__init__.py > docs/reference/frof.md
 jobs:   docshund frof/job/__init__.py > docs/reference/Jobs.md
 parser: docshund frof/parser/__init__.py > docs/reference/Parser.md
