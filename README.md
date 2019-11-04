@@ -26,3 +26,7 @@ pip3 install -e .
 ```
 
 Check out the [Getting Started Tutorial](docs/tutorial.md) to start getting your hands dirty.
+
+# generating documentation
+
+The documentation generator for this repository uses frof. You can see a basic example in use by running `frof make-docs.frof` from this directory.
