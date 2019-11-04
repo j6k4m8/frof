@@ -269,8 +269,9 @@ class LocalFrofExecutor(FrofExecutor):
         result_jobs = []
         for i, job in jobs:
             if job.get("parallelism_group", None):
-                mpc = int(job.get("max_parallel_count", MAX_PARALLEL))
-                if mpc is None:
+                if "max_parallel_count" in job and job.get("max_parallel_count"):
+                    mpc = int(job.get("max_parallel_count", MAX_PARALLEL))
+                else:
                     mpc = MAX_PARALLEL
                 parallelism_groups[job["parallelism_group"]] = (
                     parallelism_groups.get(job["parallelism_group"], 0) + 1

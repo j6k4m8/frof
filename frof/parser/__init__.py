@@ -8,10 +8,13 @@ SYNTAX = """
 start: line+
 line        : COMMENT
             | edgelist
+            | single_job
             | definition
             | param_defn
 
 edgelist    : jobname ("->" jobname)+
+
+single_job  : jobname
 
 
 ?jobname    : VARNAME
@@ -98,6 +101,9 @@ class FrofTransformer(Transformer):
 
     def edgelist(self, edgelist):
         self.G.add_path([str(e) for e in edgelist])
+
+    def single_job(self, single_job):
+        self.G.add_node(str(single_job[0]))
 
     def jobname(self, job):
         jobname, param_set, max_parallel_count = (None, None, None)

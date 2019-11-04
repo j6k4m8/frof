@@ -81,3 +81,5 @@ clean_up:           rm {{&bases}}
 Note that the final step could also be written `rm A T G C`, but we got to re-use our `&bases` definition in a second job! And that's neat.
 
 When our team eventually collects real sequences, we can simply replace the definition of `get_DNA` with the real deal. And if it turns out that it takes more than a few steps to get our hands on that sequence, we can even call another frof file from within this frof file ([[Tutorial Forthcoming]](#)). frofs running other frofs! That's why it's called that, ya?
+
+Let's imagine we have a thousand DNA sequences like this one, and we want to run them all. Learn about parallelism in this [Advanced Tutorial](Advanced.md).
