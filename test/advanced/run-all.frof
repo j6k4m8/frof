@@ -1,6 +1,6 @@
-A(&iter, 4) -> B
+run_dna(&iter) -> summarize_results
 
-A: frof DNA.txt
-B: ls
+run_dna: frof DNA.frof
+summarize_results: touch DNA.frof
 
-&iter: list(range(1000))
+&iter: list(range(10))

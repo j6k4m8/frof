@@ -16,6 +16,7 @@ class BashJob(Job):
         env = {}
         if self.use_env_vars:
             env = {**env_vars, **self.env}
+        env = {k: str(v) for k, v in env.items()}
 
         process = await asyncio.create_subprocess_shell(cmd, env=env)
         _ = await process.communicate()

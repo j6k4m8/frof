@@ -276,7 +276,7 @@ class LocalFrofExecutor(FrofExecutor):
                 parallelism_groups[job["parallelism_group"]] = (
                     parallelism_groups.get(job["parallelism_group"], 0) + 1
                 )
-                if parallelism_groups[job["parallelism_group"]] < mpc:
+                if parallelism_groups[job["parallelism_group"]] <= mpc:
                     result_jobs.append((i, job["job"]))
             else:
                 result_jobs.append((i, job["job"]))
