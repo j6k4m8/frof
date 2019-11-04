@@ -25,12 +25,31 @@ class BashJob(Job):
 
 
 class NullJob(Job):
-    def __init__(self) -> None:
+    """
+    A no-op Job class that doesn't do anything.
+
+    You can optionally add a delay, which is helpful for testing.
+    """
+
+    def __init__(self, delay: float = 0) -> None:
+        """
+        Create a new NullJob.
+
+        Arguments:
+            delay (float: 0): An optional delay when "run" is called. This lets
+                you test out long-running things without actually hitting disk.
+
+        Returns:
+            None
+
+        """
+        self.delay = delay
         pass
 
     async def run(self, env_vars=None):
         process = await asyncio.create_subprocess_shell("#", env=env_vars)
+        time.sleep(self.delay)
         _ = await process.communicate()
 
     def __str__(self) -> str:
-        return f"<NullJob>"
+        return "<NullJob>" if delay is 0 else "<NullJob delay={delay}s>"

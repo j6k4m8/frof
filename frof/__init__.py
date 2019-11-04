@@ -9,6 +9,8 @@ from .parser import FrofParser
 import asyncio
 import uuid
 
+MAX_PARALLEL = 99999
+
 
 class StatusMonitor(abc.ABC):
     """
@@ -88,7 +90,8 @@ class OneLineStatusMonitor(StatusMonitor):
             emoji = "👌"
         remaining = len(self.fe.get_current_network())
         print(
-            f"{emoji}\t {next_job_count} jobs running, {remaining} remaining.", end="\r"
+            f"{emoji} ———— {next_job_count} jobs running, {remaining} remaining.         ",
+            end="\r",
         )
 
     def launch_status(self):
@@ -102,7 +105,10 @@ class OneLineStatusMonitor(StatusMonitor):
             None
 
         """
-        print(f"Starting job with {len(self.fe.get_network())} jobs total.", end="\r")
+        print(
+            f"Starting job with {len(self.fe.get_network())} jobs total.         ",
+            end="\r",
+        )
 
 
 class FrofPlan:
@@ -159,7 +165,7 @@ class FrofPlan:
 
 class FrofExecutor(abc.ABC):
     """
-    FrofExecutors are responsible for converting a Plan to actual runtime.
+    FrofExecutors are responsible for converting a Plan to actual execution.
 
     There might be, for example, a LocalFrofExecutor, a ClusterFrofExecutor...
     This is the abstract base class; do not use this class directly.
@@ -241,6 +247,10 @@ class LocalFrofExecutor(FrofExecutor):
         """
         Get a list of the next jobs to run.
 
+        If a job belongs to a parallelism group that has a max_parallel_count,
+        this function will only return the first max_parallel_count jobs from
+        that group (but an unlimited number of jobs from nongroups).
+
         Arguments:
             None
 
@@ -248,11 +258,28 @@ class LocalFrofExecutor(FrofExecutor):
             Tuple[str, FrofJob]: (Job Name, Job Object)
 
         """
-        return [
-            (i, j["job"])
+        jobs = [
+            (i, j)
             for i, j in self.current_network.nodes(data=True)
             if self.current_network.in_degree(i) == 0
         ]
+
+        parallelism_groups = {}
+
+        result_jobs = []
+        for i, job in jobs:
+            if job.get("parallelism_group", None):
+                mpc = int(job.get("max_parallel_count", MAX_PARALLEL))
+                if mpc is None:
+                    mpc = MAX_PARALLEL
+                parallelism_groups[job["parallelism_group"]] = (
+                    parallelism_groups.get(job["parallelism_group"], 0) + 1
+                )
+                if parallelism_groups[job["parallelism_group"]] < mpc:
+                    result_jobs.append((i, job["job"]))
+            else:
+                result_jobs.append((i, job["job"]))
+        return result_jobs
 
     def execute(self) -> None:
         """

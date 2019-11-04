@@ -1,0 +1,7 @@
+A -> B(&var, 10) -> C
+
+A: sleep 1
+B: sleep 1
+C: sleep 1
+
+&var: [str(i) for i in range(100)]
