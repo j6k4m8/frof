@@ -11,14 +11,13 @@ There are two types of variables in a frof workflow; environment variables, whic
 | [`FROF_PLAN_ID`](#FROF_PLAN_ID)   | The ID of the plan file                                |
 | `FROF_VERSION`                    | The version of the running frof package (e.g. `1.2.3`) |
 
-
 ### `FROF_JOB_NAME`
 
 This is the name you provided in the .frof file, or, if you imported a job from another file, it is the slash-namespaced name of the imported file followed by the variable.
 
 For example, in the following file:
 
-```
+```yml
 first_job -> second_job
 ...
 ```
