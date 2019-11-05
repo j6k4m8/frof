@@ -1,5 +1,5 @@
 from typing import List, Callable, Union, Tuple
-
+import hashlib
 import os
 import abc
 import copy
@@ -10,6 +10,8 @@ import asyncio
 import uuid
 
 MAX_PARALLEL = 99999
+
+__version__ = "0.0.1"
 
 
 class StatusMonitor(abc.ABC):
@@ -138,7 +140,7 @@ class FrofPlan:
             None
 
         """
-        self.plan_id = str(uuid.uuid4())
+
         if isinstance(frof, str):
             if "\n" not in frof:
                 try:
@@ -148,6 +150,24 @@ class FrofPlan:
                     self.network = FrofParser().parse(frof)
         else:
             self.network = frof
+        self.plan_id = self.generate_hash()
+        print(self.plan_id)
+
+    def generate_hash(self) -> str:
+        """
+        Generate a deterministic hash for this Plan.
+
+        This will be used as the PLAN_ID.
+
+        Arguments:
+            None
+
+        Returns:
+            str: The hash for this Plan
+
+        """
+        long_str = ".".join([node_id for node_id in self.network.nodes()])
+        return hashlib.sha256(long_str.encode()).hexdigest()
 
     def as_networkx(self):
         """
@@ -296,6 +316,17 @@ class LocalFrofExecutor(FrofExecutor):
         run_id = str(uuid.uuid4())
         self.current_network = copy.deepcopy(self.fp.network)
         self.status_monitor.launch_status()
+        env = {
+            "FROF_RUN_ID": run_id,
+            "FROF_PLAN_ID": self.fp.plan_id,
+            "FROF_VERSION": __version__,
+        }
+        if os.getenv("FROF_PARENT_PLAN_ID"):
+            env["FROF_PARENT_PLAN_ID"] = os.getenv("FROF_PARENT_PLAN_ID")
+            env["FROF_PARENT_RUN_ID"] = os.getenv("FROF_PARENT_RUN_ID")
+            env["FROF_PLAN_ID"] = "{}--{}".format(
+                os.getenv("FROF_PARENT_PLAN_ID"), self.fp.plan_id
+            )
         while len(self.current_network):
             current_jobs = self.get_next_jobs()
             loop = asyncio.get_event_loop()
@@ -303,10 +334,9 @@ class LocalFrofExecutor(FrofExecutor):
                 *[
                     job.run(
                         env_vars={
+                            **env,
                             "FROF_BATCH_ITER": str(itercounter),
                             "FROF_JOB_NAME": str(i),
-                            "FROF_RUN_ID": run_id,
-                            "FROF_PLAN_ID": self.fp.plan_id,
                         }
                     )
                     for itercounter, (i, job) in enumerate(current_jobs)

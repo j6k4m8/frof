@@ -4,11 +4,12 @@ There are two types of variables in a frof workflow; environment variables, whic
 
 ## common environment variables
 
-| Variable Name                     | Description                                   |
-| --------------------------------- | --------------------------------------------- |
-| [`FROF_JOB_NAME`](#FROF_JOB_NAME) | The name of the currently running job         |
-| [`FROF_RUN_ID`](#FROF_RUN_ID)     | The ID of the current run of this plan (UUID) |
-| [`FROF_PLAN_ID`](#FROF_PLAN_ID)   | The ID of the plan file                       |
+| Variable Name                     | Description                                            |
+| --------------------------------- | ------------------------------------------------------ |
+| [`FROF_JOB_NAME`](#FROF_JOB_NAME) | The name of the currently running job                  |
+| [`FROF_RUN_ID`](#FROF_RUN_ID)     | The ID of the current run of this plan (UUID)          |
+| [`FROF_PLAN_ID`](#FROF_PLAN_ID)   | The ID of the plan file                                |
+| `FROF_VERSION`                    | The version of the running frof package (e.g. `1.2.3`) |
 
 
 ### `FROF_JOB_NAME`
@@ -34,12 +35,20 @@ This is _expected_ (but not guaranteed) to be the same for the same .frof file, 
 
 Unlike the `FROF_RUN_ID`, this will not change the second time you run a .frof file! You should use this to keep track of which Plan an output came from, but you should NOT expect it to distinguish between different runs of the same file.
 
+If a frof is running inside another frof, this will be a (`--`)-chained concatenation of the parent `FROF_PLAN_ID`s. For example, in the case of a job triply nested, this will be `[OUTERMOST_PLAN_ID]--[NEXT_PLAN_ID]--[THIS_PLAN_ID]`.
+
 ## other environment variables
 
-| Variable Name     | Description                                            |
-| ----------------- | ------------------------------------------------------ |
-| `FROF_BATCH_ITER` | The integer order of this job's execution in its batch |
+| Variable Name          | Description                                            |
+| ---------------------- | ------------------------------------------------------ |
+| `FROF_BATCH_ITER`      | The integer order of this job's execution in its batch |
+| *`FROF_PARENT_PLAN_ID` | ID of the parent Plan.                                 |
+| *`FROF_PARENT_RUN_ID`  | ID of the parent Execution.                            |
+
+*: Only set if this frof is running inside of another frof
 
 ### `FROF_BATCH_ITER`
 
-May be deprecated. Do not use.
+~~For executors in which several jobs are run in a group, provides the index of this job inside that batch.~~
+
+Will be deprecated. Do not use.
