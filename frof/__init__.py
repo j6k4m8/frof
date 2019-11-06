@@ -215,6 +215,7 @@ class LocalFrofExecutor(FrofExecutor):
         self,
         fp: Union["FrofPlan", str, nx.DiGraph],
         status_monitor: Callable = OneLineStatusMonitor,
+        max_jobs: int = None,
     ) -> None:
         """
         Create a new LocalFrofExecutor.
@@ -228,12 +229,17 @@ class LocalFrofExecutor(FrofExecutor):
             status_monitor (StatusMonitor: OneLineStatusMonitor): Constructor
                 for the StatusMonitor to use to track progress in this
                 execution. Defaults to the OneLineStatusMonitor.
+            max_jobs (int: None): The maximum number of jobs to run at once.
+                Defaults to the number of CPUs on this machine.
 
         """
         if isinstance(fp, FrofPlan):
             self.fp = fp
         else:
             self.fp = FrofPlan(fp)
+
+        self.max_jobs = max_jobs if max_jobs else os.cpu_count
+
         self.status_monitor = status_monitor(self)
         self.current_network = nx.DiGraph()
 

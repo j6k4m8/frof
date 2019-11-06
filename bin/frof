@@ -7,8 +7,9 @@ import os
 
 @click.command()
 @click.argument("frof_file")
-def cli_main(frof_file: str):
-    fe = LocalFrofExecutor(os.path.expanduser(frof_file))
+@click.option("--max_jobs", "-p", default=None)
+def cli_main(frof_file: str, max_jobs: int = None):
+    fe = LocalFrofExecutor(os.path.expanduser(frof_file), max_jobs=max_jobs)
     fe.execute()
 
 
