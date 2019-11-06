@@ -8,6 +8,8 @@ import networkx as nx
 from .parser import FrofParser
 import asyncio
 import uuid
+from flask import Flask, jsonify
+from flask_cors import CORS
 
 MAX_PARALLEL = 99999
 
@@ -233,6 +235,7 @@ class LocalFrofExecutor(FrofExecutor):
                 Defaults to the number of CPUs on this machine.
 
         """
+        self.current_network = nx.DiGraph()
         if isinstance(fp, FrofPlan):
             self.fp = fp
         else:
@@ -241,7 +244,6 @@ class LocalFrofExecutor(FrofExecutor):
         self.max_jobs = max_jobs if max_jobs else os.cpu_count
 
         self.status_monitor = status_monitor(self)
-        self.current_network = nx.DiGraph()
 
     def get_current_network(self) -> nx.DiGraph:
         """

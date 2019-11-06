@@ -1,0 +1,7 @@
+A -> B(&foo, 2) -> C
+
+A: sleep 10
+B: sleep 10
+C: sleep 10
+
+&foo: [1, 2, 3, 4, 5]
