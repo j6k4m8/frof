@@ -130,6 +130,9 @@ class HTTPServerStatusMonitor(StatusMonitor):
         self.fe = fe
         self.port = port
 
+        self.started_time = datetime.now()
+        self.total_job_count = len(self.fe.fp.as_networkx())
+
         self.app = Flask(__name__)
         CORS(self.app)
         self.app.add_url_rule("/", "home", self._home)
@@ -144,12 +147,68 @@ class HTTPServerStatusMonitor(StatusMonitor):
         return """
         <html>
             <body>
+                <div id="app"></div>
+                <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">
                 <script>
-                window.setInterval(() => {
-                    fetch("[[URL]]/status").then(res => res.json()).then(res => {
-                        console.log(res);
+                    let Home = Vue.component('Home', {
+                        template: `
+                        <div>
+                            <div class="section">
+                                <h1 class="title">frof monitor</h1>
+                                <h2 class="subtitle">Started at {{ started_at }}.</h2>
+                                <progress class="progress is-large is-success" :value="this.percent_done" max="100">{{this.percent_done}}%</progress>
+                            </div>
+                            <div class="section">
+                                <div class="columns">
+                                    <div class="column">
+                                        <div class='panel'>
+                                        <div class='panel-block' v-for='job in jobs'>
+                                        <span class="tag">{{job.type}}</span> {{ job.cmd }}
+                                        </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        `,
+                        props: {
+                            'jobs': {type: Array},
+                            'started_at': {type: String},
+                            'percent_done': {type: Number},
+                        }
                     });
-                }, 1000);
+
+                    var app = new Vue({
+                        el: '#app',
+                        components: {Home,},
+                        template: `
+                        <div>
+                            <Home
+                                :jobs="this.jobs"
+                                :started_at="this.started_at"
+                                :percent_done="this.pct"
+                                />
+                        </div>`,
+                        created() {
+                            console.log("creating...");
+                            window.setInterval(() => {
+                                fetch("[[URL]]/status").then(res => res.json()).then(res => {
+                                    this.jobs = res.remaining_jobs;
+                                    this.started_at = res.started_at;
+                                    this.pct = res.pct * 100;
+                                }).catch(() => {
+                                    this.jobs = [];
+                                    this.pct = 100;
+                                });
+                            }, 1000);
+                        },
+                        data: {
+                            jobs: [],
+                            started_at: "unknown time",
+                            pct: 0
+                        }
+                    });
                 </script>
             </body>
         </html>
@@ -159,8 +218,21 @@ class HTTPServerStatusMonitor(StatusMonitor):
 
     def _status(self):
         next_job_count = len(self.fe.get_next_jobs())
-        remaining = len(self.fe.get_current_network())
-        return jsonify({"remaining": remaining, "running": next_job_count})
+        remaining_count = len(self.fe.get_current_network())
+        return jsonify(
+            {
+                "started_at": self.started_time,
+                "pct": (self.total_job_count - remaining_count) / self.total_job_count,
+                "remaining_count": remaining_count,
+                "running": next_job_count,
+                "remaining_jobs": list(
+                    [
+                        {"cmd": str(v["job"].cmd), "type": str(type(v["job"]))}
+                        for i, v in self.fe.get_current_network().nodes(data=True)
+                    ]
+                ),
+            }
+        )
 
     def launch_status(self):
         self.status = ""

@@ -59,7 +59,7 @@ class BashJob(Job):
             str: A human-readable string
 
         """
-        return f"<{self.cmd[:10]}>"
+        return f"<BashJob [{self.cmd[:10]}]>"
 
     def __repr__(self) -> str:
         """

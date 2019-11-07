@@ -1,7 +1,7 @@
 A -> B(&foo, 2) -> C
 
 A: sleep 1
-B: sleep 5
+B: sleep {{&foo}}
 C: sleep 5
 
-&foo: [1, 2, 3, 4, 5]
+&foo: range(10)
