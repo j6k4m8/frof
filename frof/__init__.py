@@ -1,15 +1,21 @@
-from typing import List, Callable, Union, Tuple
-import hashlib
-import os
+from typing import Callable, List, Tuple, Union
+
 import abc
 import copy
+import hashlib
+import os
 import time
-import networkx as nx
-from .parser import FrofParser
-import asyncio
+import threading
 import uuid
+from datetime import datetime
+
 from flask import Flask, jsonify
 from flask_cors import CORS
+
+import networkx as nx
+from joblib import Parallel, delayed
+
+from .parser import FrofParser
 
 MAX_PARALLEL = 99999
 
@@ -72,6 +78,8 @@ class OneLineStatusMonitor(StatusMonitor):
 
         """
         self.fe = fe
+        self.started_time = datetime.now()
+        self.total_job_count = len(self.fe.fp.as_networkx())
 
     def emit_status(self):
         """
@@ -93,8 +101,10 @@ class OneLineStatusMonitor(StatusMonitor):
         else:
             emoji = "👌"
         remaining = len(self.fe.get_current_network())
+
+        pct = (self.total_job_count - remaining) / self.total_job_count
         print(
-            f"{emoji} ———— {next_job_count} jobs running, {remaining} remaining.         ",
+            f"{emoji} ———— {next_job_count} jobs running, {remaining} remaining ({int(100*pct)}%).         ",
             end="\r",
         )
 
@@ -113,6 +123,50 @@ class OneLineStatusMonitor(StatusMonitor):
             f"Starting job with {len(self.fe.get_network())} jobs total.         ",
             end="\r",
         )
+
+
+class HTTPServerStatusMonitor(StatusMonitor):
+    def __init__(self, fe: "FrofExecutor", port: int = 8111) -> None:
+        self.fe = fe
+        self.port = port
+
+        self.app = Flask(__name__)
+        CORS(self.app)
+        self.app.add_url_rule("/", "home", self._home)
+        self.app.add_url_rule("/status", "status", self._status)
+        thread = threading.Thread(
+            target=self.app.run, kwargs=dict(host="0.0.0.0", port=self.port)
+        )
+        thread.daemon = True
+        thread.start()
+
+    def _home(self):
+        return """
+        <html>
+            <body>
+                <script>
+                window.setInterval(() => {
+                    fetch("[[URL]]/status").then(res => res.json()).then(res => {
+                        console.log(res);
+                    });
+                }, 1000);
+                </script>
+            </body>
+        </html>
+        """.replace(
+            "[[URL]]", "http://0.0.0.0:8111"
+        )
+
+    def _status(self):
+        next_job_count = len(self.fe.get_next_jobs())
+        remaining = len(self.fe.get_current_network())
+        return jsonify({"remaining": remaining, "running": next_job_count})
+
+    def launch_status(self):
+        self.status = ""
+
+    def emit_status(self):
+        self.status = ""
 
 
 class FrofPlan:
@@ -153,7 +207,6 @@ class FrofPlan:
         else:
             self.network = frof
         self.plan_id = self.generate_hash()
-        print(self.plan_id)
 
     def generate_hash(self) -> str:
         """
@@ -241,7 +294,7 @@ class LocalFrofExecutor(FrofExecutor):
         else:
             self.fp = FrofPlan(fp)
 
-        self.max_jobs = max_jobs if max_jobs else os.cpu_count
+        self.max_jobs = max_jobs if max_jobs else os.cpu_count()
 
         self.status_monitor = status_monitor(self)
 
@@ -337,20 +390,17 @@ class LocalFrofExecutor(FrofExecutor):
             )
         while len(self.current_network):
             current_jobs = self.get_next_jobs()
-            loop = asyncio.get_event_loop()
-            jobs = asyncio.gather(
-                *[
-                    job.run(
-                        env_vars={
-                            **env,
-                            "FROF_BATCH_ITER": str(itercounter),
-                            "FROF_JOB_NAME": str(i),
-                        }
-                    )
-                    for itercounter, (i, job) in enumerate(current_jobs)
-                ]
+            Parallel(n_jobs=self.max_jobs)(
+                delayed(job.run)(
+                    env_vars={
+                        **env,
+                        "FROF_BATCH_ITER": str(itercounter),
+                        "FROF_JOB_NAME": str(i),
+                    }
+                )
+                for itercounter, (i, job) in enumerate(current_jobs)
             )
-            _ = loop.run_until_complete(jobs)
+
             for (i, _) in current_jobs:
                 self.current_network.remove_node(i)
             self.status_monitor.emit_status()

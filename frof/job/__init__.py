@@ -1,4 +1,5 @@
-import asyncio
+import time
+import subprocess
 
 
 class Job:
@@ -29,7 +30,7 @@ class BashJob(Job):
         self.use_env_vars = use_env_vars
         self.env = env if env else {}
 
-    async def run(self, env_vars=None):
+    def run(self, env_vars=None):
         """
         Run the command.
 
@@ -48,9 +49,7 @@ class BashJob(Job):
         # Cast all env-vars to string (int/float other types are not supported
         # by Python's subprocess module).
         env = {k: str(v) for k, v in env.items()}
-
-        process = await asyncio.create_subprocess_shell(cmd, env=env)
-        _ = await process.communicate()
+        subprocess.check_output(cmd, shell=True, env=env)
 
     def __str__(self) -> str:
         """
@@ -95,10 +94,8 @@ class NullJob(Job):
         self.delay = delay
         pass
 
-    async def run(self, env_vars=None):
-        process = await asyncio.create_subprocess_shell("#", env=env_vars)
+    def run(self, env_vars=None):
         time.sleep(self.delay)
-        _ = await process.communicate()
 
     def __str__(self) -> str:
         return "<NullJob>" if self.delay is 0 else "<NullJob delay={delay}s>"
