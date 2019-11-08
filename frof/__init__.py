@@ -150,7 +150,15 @@ class HTTPServerStatusMonitor(StatusMonitor):
                 <div id="app"></div>
                 <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
                 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">
+                <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
                 <script>
+                    function setTitle(title) {
+                        if (title) {
+                            document.title = title + " | frof monitor";
+                        } else {
+                            document.title = "frof monitor";
+                        }
+                    }
                     let Home = Vue.component('Home', {
                         template: `
                         <div>
@@ -163,9 +171,15 @@ class HTTPServerStatusMonitor(StatusMonitor):
                                 <div class="columns">
                                     <div class="column">
                                         <div class='panel'>
-                                        <div class='panel-block' v-for='job in jobs'>
-                                        <span class="tag">{{job.type}}</span> {{ job.cmd }}
-                                        </div>
+                                            <div class='panel-block' v-for='job in jobs'>
+                                                <span class="icon" v-if="job.status=='running'">
+                                                <i class="fas fa-spinner fa-pulse"></i>
+                                                </span>
+                                                <span class="tag" :class='classify(job.status)'>
+                                                    {{job.type}}
+                                                </span>
+                                                {{ job.cmd }} — {{ job.env }}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -176,6 +190,14 @@ class HTTPServerStatusMonitor(StatusMonitor):
                             'jobs': {type: Array},
                             'started_at': {type: String},
                             'percent_done': {type: Number},
+                        },
+                        methods: {
+                            classify(s) {
+                                return {
+                                    "running": "is-info",
+                                    "pending": ""
+                                }[s];
+                            }
                         }
                     });
 
@@ -197,6 +219,7 @@ class HTTPServerStatusMonitor(StatusMonitor):
                                     this.jobs = res.remaining_jobs;
                                     this.started_at = res.started_at;
                                     this.pct = res.pct * 100;
+                                    setTitle(`(${Math.ceil(this.pct)}%)`)
                                 }).catch(() => {
                                     this.jobs = [];
                                     this.pct = 100;
@@ -217,7 +240,8 @@ class HTTPServerStatusMonitor(StatusMonitor):
         )
 
     def _status(self):
-        next_job_count = len(self.fe.get_next_jobs())
+        next_jobs = self.fe.get_next_jobs()
+        next_job_count = len(next_jobs)
         remaining_count = len(self.fe.get_current_network())
         return jsonify(
             {
@@ -227,7 +251,12 @@ class HTTPServerStatusMonitor(StatusMonitor):
                 "running": next_job_count,
                 "remaining_jobs": list(
                     [
-                        {"cmd": str(v["job"].cmd), "type": str(type(v["job"]))}
+                        {
+                            "cmd": str(v["job"].cmd),
+                            "type": str(type(v["job"]).__name__),
+                            "status": "running" if i in [i for i, k in next_jobs] else "pending",
+                            "env": v["job"].env,
+                        }
                         for i, v in self.fe.get_current_network().nodes(data=True)
                     ]
                 ),
