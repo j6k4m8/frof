@@ -1,4 +1,4 @@
-run_dna(&iter) -> summarize_results
+run_dna(&iter, 2) -> summarize_results
 
 run_dna: frof DNA.frof
 summarize_results: touch DNA.frof

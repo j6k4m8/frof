@@ -1,6 +1,11 @@
 #!/usr/bin/env python
 
-from frof import LocalFrofExecutor, HTTPServerStatusMonitor, OneLineStatusMonitor
+from frof import (
+    LocalFrofExecutor,
+    HTTPServerStatusMonitor,
+    OneLineStatusMonitor,
+    NullStatusMonitor,
+)
 import click
 import os
 
@@ -8,14 +13,17 @@ import os
 @click.command()
 @click.argument("frof_file")
 @click.option("--max_jobs", "-p", default=None)
-@click.option("--status", type=click.Choice(["http", "oneline"]))
-def cli_main(frof_file: str, max_jobs: int = None, status: str = "oneline"):
+@click.option(
+    "--status", type=click.Choice(["http", "oneline", "none"]), default="none"
+)
+def cli_main(frof_file: str, max_jobs: int = None, status: str = "none"):
+    status_monitor = {
+        "none": NullStatusMonitor,
+        "http": HTTPServerStatusMonitor,
+        "oneline": OneLineStatusMonitor,
+    }[status]
     fe = LocalFrofExecutor(
-        os.path.expanduser(frof_file),
-        max_jobs=max_jobs,
-        status_monitor=(
-            HTTPServerStatusMonitor if status == "http" else OneLineStatusMonitor
-        ),
+        os.path.expanduser(frof_file), max_jobs=max_jobs, status_monitor=status_monitor
     )
     fe.execute()
 

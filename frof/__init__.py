@@ -45,6 +45,23 @@ class StatusMonitor(abc.ABC):
         ...
 
 
+class NullStatusMonitor(StatusMonitor):
+    """
+    Abstract class for status-monitoring capabilities.
+
+    Do not use directly.
+    """
+
+    def __init__(self, fe, **kwargs):
+        return
+
+    def launch_status(self):
+        return
+
+    def emit_status(self):
+        return
+
+
 class OneLineStatusMonitor(StatusMonitor):
     """
     A status monitor that keeps itself constrainted to a single line.
@@ -254,7 +271,9 @@ class HTTPServerStatusMonitor(StatusMonitor):
                         {
                             "cmd": str(v["job"].cmd),
                             "type": str(type(v["job"]).__name__),
-                            "status": "running" if i in [i for i, k in next_jobs] else "pending",
+                            "status": "running"
+                            if i in [i for i, k in next_jobs]
+                            else "pending",
                             "env": v["job"].env,
                         }
                         for i, v in self.fe.get_current_network().nodes(data=True)
