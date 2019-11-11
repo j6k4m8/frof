@@ -236,10 +236,11 @@ class HTTPServerStatusMonitor(StatusMonitor):
                                     this.jobs = res.remaining_jobs;
                                     this.started_at = res.started_at;
                                     this.pct = res.pct * 100;
-                                    setTitle(`(${Math.ceil(this.pct)}%)`)
+                                    setTitle(`(${Math.ceil(this.pct)}%)`);
                                 }).catch(() => {
                                     this.jobs = [];
                                     this.pct = 100;
+                                    setTitle(`(${Math.ceil(this.pct)}%)`);
                                 });
                             }, 1000);
                         },
