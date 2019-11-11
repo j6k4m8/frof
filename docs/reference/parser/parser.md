@@ -38,4 +38,3 @@ Parse a .frof syntax tree.
 ### Return
 > - **nx.DiGraph** (`None`: `None`): The parsed job network
 
-

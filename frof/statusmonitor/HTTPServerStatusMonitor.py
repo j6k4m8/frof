@@ -55,13 +55,20 @@ class HTTPServerStatusMonitor(StatusMonitor):
                                     <div class="column">
                                         <div class='panel'>
                                             <div class='panel-block' v-for='job in jobs'>
+                                            <div class="column is-2">
                                                 <span class="icon" v-if="job.status=='running'">
-                                                <i class="fas fa-spinner fa-pulse"></i>
+                                                    <i class="fas fa-spinner fa-pulse"></i>
                                                 </span>
                                                 <span class="tag" :class='classify(job.status)'>
                                                     {{job.type}}
                                                 </span>
-                                                {{ job.cmd }} — {{ job.env }}
+                                                </div>
+                                                <div class="column is-7">
+                                                    <code>{{ job.cmd }}</code>
+                                                </div>
+                                                <div class="column">
+                                                    {{ job.env }}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -101,12 +108,13 @@ class HTTPServerStatusMonitor(StatusMonitor):
                                 fetch("[[URL]]/status").then(res => res.json()).then(res => {
                                     this.jobs = res.remaining_jobs;
                                     this.started_at = res.started_at;
+                                    //this.started_at = new Date(res.started_at).toLocaleString();
                                     this.pct = res.pct * 100;
                                     setTitle(`(${Math.ceil(this.pct)}%)`);
                                 }).catch(() => {
                                     this.jobs = [];
                                     this.pct = 100;
-                                    setTitle(`(${Math.ceil(this.pct)}%)`);
+                                    setTitle(`Idle`);
                                 });
                             }, 1000);
                         },

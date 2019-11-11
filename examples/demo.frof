@@ -1,0 +1,6 @@
+job_a -> job_b(&foo)
+
+job_a: touch A.txt
+job_b: echo "{{&foo}}" >> A.txt
+
+&foo: [1, 2, 3]

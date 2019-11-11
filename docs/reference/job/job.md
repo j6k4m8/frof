@@ -12,7 +12,9 @@ These are executed in the current working directory.
 Create a new BashJob.
 
 ### Arguments
-> - **cmd** (`str`: `None`): The command to execute     use_env_vars (bool: True): Whether to set environment variables     env (dict: None): Custom environment variables to use
+> - **cmd** (`str`: `None`): The command to execute
+> - **use_env_vars** (`bool`: `True`): Whether to set environment variables
+> - **env** (`dict`: `None`): Custom environment variables to use
 
 ### Returns
     None
@@ -71,5 +73,4 @@ Create a new NullJob.
 
 ### Returns
     None
-
 
