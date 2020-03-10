@@ -21,6 +21,8 @@ from ..version import __version__
 
 MAX_PARALLEL = 99999
 
+_HOME = os.path.expanduser("~")
+
 
 class FrofExecutor(abc.ABC):
     """
@@ -180,6 +182,7 @@ class LocalFrofExecutor(FrofExecutor):
                         **env,
                         "FROF_BATCH_ITER": str(itercounter),
                         "FROF_JOB_NAME": str(i),
+                        "HOME": _HOME
                     }
                 )
                 for itercounter, (i, job) in enumerate(current_jobs)

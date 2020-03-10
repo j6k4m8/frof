@@ -100,7 +100,7 @@ class FrofTransformer(Transformer):
         return self.G
 
     def edgelist(self, edgelist):
-        self.G.add_path([str(e) for e in edgelist])
+        nx.add_path(self.G, [str(e) for e in edgelist])
 
     def single_job(self, single_job):
         self.G.add_node(str(single_job[0]))
@@ -132,7 +132,7 @@ class FrofTransformer(Transformer):
     def definition(self, definition):
         key, command = definition
         key = str(key)
-        self.G.node[key]["job"] = BashJob(command)
+        self.G.nodes[key]["job"] = BashJob(command)
 
     def command(self, command):
         return str(command).strip()
