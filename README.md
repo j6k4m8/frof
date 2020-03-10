@@ -10,11 +10,12 @@ Let's generate a simple README.md using `frof`. We create the title in one job, 
 `simple.frof`
 ```yml
 make_heading -> combine_files
-make_content -> combine_files
+make_content -> combine_files -> cleanup
 
 combine_files:  cat part_a part_b > new_readme.txt
 make_heading:   echo "# frof" > part_a
 make_content:   echo "frof runs other frofs" > part_b
+cleanup:        rm part_a part_b
 ```
 
 ## installation
