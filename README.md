@@ -3,6 +3,8 @@
 
 frof is a crazy-simple, zero-config tool to schedule multiple interdependent jobs.
 
+> Note: I wrote frof as an undergraduate in 2015–2016. It was recently updated for Python 3 support, but you may discover that it has some fun surprising bugs anyway!
+
 ## overview
 
 Let's generate a simple README.md using `frof`. We create the title in one job, the contents in another job, and then combine them in a third job. The first two must run before the third, but are independent of each other.
