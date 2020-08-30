@@ -219,7 +219,7 @@ class SlurmFrofExecutor(abc.ABC):
         return []
 
     def get_current_network(self) -> nx.DiGraph:
-        return nx.DiGraph()
+        return self.fp.as_networkx()
 
     def get_network(self) -> nx.DiGraph:
         return self.fp.as_networkx()
@@ -243,12 +243,12 @@ class SlurmFrofExecutor(abc.ABC):
                                     {
                                         "dependency": f"afterok:{deps}",
                                         "partition": "htc-amd",
-                                        "output": "~/frof-slurm/output.%a.out",
+                                        "output": "frof-slurm/output.%a.out",
                                     }
                                     if deps
                                     else {
                                         "partition": "htc-amd",
-                                        "output": "~/frof-slurm/output.%a.out",
+                                        "output": "frof-slurm/output.%a.out",
                                     }
                                 )
                             )
@@ -260,3 +260,5 @@ class SlurmFrofExecutor(abc.ABC):
                     nodes_to_remove.append(i)
             for i in nodes_to_remove:
                 nodes_to_run.pop(i)
+
+        self.status_monitor.emit_status()
