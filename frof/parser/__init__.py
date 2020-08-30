@@ -2,7 +2,7 @@ import uuid
 from lark import Lark, Transformer
 import networkx as nx
 
-from ..job import BashJob
+from ..job import BashJob, SlurmJob
 
 SYNTAX = """
 start: line+
@@ -60,6 +60,7 @@ class FrofTransformer(Transformer):
 
     def __init__(self, *args, **kwargs) -> None:
         self.G = nx.DiGraph()
+        self.jobclass = kwargs.get("jobclass", BashJob)
         self._params = {}
         self._job_param_assignments = {}
         super().__init__(*args, **kwargs)
@@ -89,7 +90,7 @@ class FrofTransformer(Transformer):
                     f"{jobname}_{option}",
                     max_parallel_count=max_parallel_count,
                     parallelism_group=parallelism_group,
-                    job=BashJob(job_text, env={"FROF_JOB_PARAM": option}),
+                    job=(self.jobclass)(job_text, env={"FROF_JOB_PARAM": option}),
                 )
                 for i in ins:
                     self.G.add_edge(i, f"{jobname}_{option}")
@@ -132,7 +133,7 @@ class FrofTransformer(Transformer):
     def definition(self, definition):
         key, command = definition
         key = str(key)
-        self.G.nodes[key]["job"] = BashJob(command)
+        self.G.nodes[key]["job"] = (self.jobclass)(command)
 
     def command(self, command):
         return str(command).strip()
@@ -158,7 +159,7 @@ class FrofParser:
         """
         pass
 
-    def parse(self, frof: str) -> nx.DiGraph:
+    def parse(self, frof: str, job_class=BashJob) -> nx.DiGraph:
         """
         Parse a .frof syntax tree.
 
@@ -170,5 +171,5 @@ class FrofParser:
 
         """
         tree = frof_parser.parse(frof)
-        G = FrofTransformer().transform(tree)
+        G = FrofTransformer(job_class=job_class).transform(tree)
         return G

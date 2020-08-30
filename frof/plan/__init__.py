@@ -11,6 +11,7 @@ from datetime import datetime
 import networkx as nx
 
 from ..parser import FrofParser
+from ..job import BashJob
 from ..statusmonitor import NullStatusMonitor
 
 
@@ -28,7 +29,7 @@ class FrofPlan:
 
     """
 
-    def __init__(self, frof):
+    def __init__(self, frof, job_class=BashJob):
         """
         Create a new FrofPlan.
 
@@ -45,9 +46,11 @@ class FrofPlan:
             if "\n" not in frof:
                 try:
                     with open(os.path.expanduser(frof), "r") as fh:
-                        self.network = FrofParser().parse(fh.read())
+                        self.network = FrofParser().parse(
+                            fh.read(), job_class=job_class
+                        )
                 except FileNotFoundError:
-                    self.network = FrofParser().parse(frof)
+                    self.network = FrofParser().parse(frof, job_class=job_class)
         else:
             self.network = frof
         self.plan_id = self.generate_hash()

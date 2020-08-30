@@ -16,6 +16,7 @@ import networkx as nx
 
 from ..parser import FrofParser
 from ..plan import FrofPlan
+from ..job import BashJob, SlurmJob
 from ..statusmonitor import NullStatusMonitor
 from ..version import __version__
 
@@ -210,7 +211,7 @@ class SlurmFrofExecutor(abc.ABC):
         if isinstance(fp, FrofPlan):
             self.fp = fp
         else:
-            self.fp = FrofPlan(fp)
+            self.fp = FrofPlan(fp, job_class=SlurmJob)
         self.status_monitor = status_monitor(self)
         self.max_jobs = max_jobs
 
@@ -235,7 +236,10 @@ class SlurmFrofExecutor(abc.ABC):
                         [dep in slurm_lookups for dep, _ in network.in_edges()]
                     )
                     slurm_id = job.run(
-                        extra_args={"dependency": f"afterok:{deps}"}
+                        extra_args={
+                            "dependency": f"afterok:{deps}",
+                            "partition": "htc-amd",
+                        }
                     ).split()[-1]
                     slurm_lookups[i] = slurm_id
                     nodes_to_run.remove(i)
