@@ -79,7 +79,7 @@ class FrofTransformer(Transformer):
             jobname,
             (paramname, max_parallel_count),
         ) in self._job_param_assignments.items():
-            job = self.G.node[jobname]
+            job = self.G.nodes[jobname]
             ins = [u for u, v in self.G.in_edges(jobname)]
             outs = [v for u, v in self.G.out_edges(jobname)]
 
