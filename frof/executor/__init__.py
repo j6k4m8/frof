@@ -234,7 +234,7 @@ class SlurmFrofExecutor(abc.ABC):
                 # "Submitted batch job 1097"
                 if all([dep in slurm_lookups for dep, _ in network.in_edges(i)]):
                     deps = ":".join(
-                        [dep in slurm_lookups for dep, _ in network.in_edges(i)]
+                        [dep for dep, _ in network.in_edges(i)]
                     )
                     slurm_id = job.run(
                         extra_args=(
