@@ -207,8 +207,11 @@ class SlurmFrofExecutor(abc.ABC):
         status_monitor: Callable = NullStatusMonitor,
         max_jobs: int = None,
     ) -> None:
-        self.fp = fp
-        self.status_monitor = status_monitor
+        if isinstance(fp, FrofPlan):
+            self.fp = fp
+        else:
+            self.fp = FrofPlan(fp)
+        self.status_monitor = status_monitor(self)
         self.max_jobs = max_jobs
 
     def get_next_jobs(self) -> List:
