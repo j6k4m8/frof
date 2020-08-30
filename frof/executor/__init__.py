@@ -236,13 +236,18 @@ class SlurmFrofExecutor(abc.ABC):
                     deps = ":".join(
                         [slurm_lookups[dep] for dep, _ in network.in_edges(i)]
                     )
-                    slurm_id = job.run(
-                        extra_args=(
-                            {"dependency": f"afterok:{deps}", "partition": "htc-amd",}
-                            if deps
-                            else {"partition": "htc-amd"}
-                        )
-                    ).split()[-1]
+                    slurm_id = (
+                        job.run(
+                            extra_args=(
+                                {
+                                    "dependency": f"afterok:{deps}",
+                                    "partition": "htc-amd",
+                                }
+                                if deps
+                                else {"partition": "htc-amd"}
+                            )
+                        ).split()
+                    ).decode("utf-8")[-1]
                     slurm_lookups[i] = slurm_id
                     nodes_to_remove.append(i)
             for i in nodes_to_remove:
