@@ -229,6 +229,7 @@ class SlurmFrofExecutor(abc.ABC):
         slurm_lookups = {}
         nodes_to_run = {i: job["job"] for i, job in network.nodes(data=True)}
         while len(nodes_to_run) > 0:
+            nodes_to_remove = []
             for i, job in nodes_to_run.items():
                 # "Submitted batch job 1097"
                 if all([dep in slurm_lookups for dep, _ in network.in_edges(i)]):
@@ -243,7 +244,6 @@ class SlurmFrofExecutor(abc.ABC):
                         )
                     ).split()[-1]
                     slurm_lookups[i] = slurm_id
-                    print(slurm_lookups)
-                    nodes_to_run.pop(i)
-            time.sleep(2)
-            print(nodes_to_run)
+                    nodes_to_remove.append(i)
+            for i in nodes_to_remove:
+                nodes_to_run.pop(i)
