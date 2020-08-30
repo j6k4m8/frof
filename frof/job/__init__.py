@@ -138,7 +138,6 @@ class SlurmJob(BashJob):
         # Cast all env-vars to string (int/float other types are not supported
         # by Python's subprocess module).
         env = {k: str(v) for k, v in env.items()}
-        return f"sbatch {extra_args} --wrap='{cmd}'"
         return subprocess.check_output(
             f"sbatch {extra_args} --wrap='{cmd}'", shell=True, env=env,
         )
