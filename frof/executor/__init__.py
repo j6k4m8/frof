@@ -182,7 +182,7 @@ class LocalFrofExecutor(FrofExecutor):
                         **env,
                         "FROF_BATCH_ITER": str(itercounter),
                         "FROF_JOB_NAME": str(i),
-                        "HOME": _HOME
+                        "HOME": _HOME,
                     }
                 )
                 for itercounter, (i, job) in enumerate(current_jobs)
@@ -191,3 +191,43 @@ class LocalFrofExecutor(FrofExecutor):
             for (i, _) in current_jobs:
                 self.current_network.remove_node(i)
             self.status_monitor.emit_status()
+
+
+class SlurmFrofExecutor(abc.ABC):
+    """
+    FrofExecutors are responsible for converting a Plan to actual execution.
+
+    There might be, for example, a LocalFrofExecutor, a ClusterFrofExecutor...
+    This is the abstract base class; do not use this class directly.
+    """
+
+    def __init__(
+        self,
+        fp: Union["FrofPlan", str, nx.DiGraph],
+        status_monitor: Callable = NullStatusMonitor,
+        max_jobs: int = None,
+    ) -> None:
+        self.fp = fp
+        self.status_monitor = status_monitor
+        self.max_jobs = max_jobs
+
+    def get_next_jobs(self) -> List:
+        return []
+
+    def get_current_network(self) -> nx.DiGraph:
+        return nx.DiGraph()
+
+    def get_network(self) -> nx.DiGraph:
+        return self.fp.as_networkx()
+
+    def execute(self) -> None:
+        network = self.get_network()
+        slurm_lookups = {}
+        nodes_to_run = {i: job for i, job in network.nodes(data=True)}
+        while len(nodes_to_run) > 0:
+            for i, job in nodes_to_run.items():
+                # "Submitted batch job 1097"
+                if all([dep in slurm_lookups for dep, _ in network.in_edges()]):
+                    slurm_id = job.run().split()[-1]
+                    slurm_lookups[i] = slurm_id
+                    nodes_to_run.remove(i)

@@ -72,6 +72,81 @@ class BashJob(Job):
         return f"BashJob('{self.cmd}', env={self.env})"
 
 
+class SlurmJob(BashJob):
+    """
+    BashJobs manage the execution of simple commands in a local shell.
+
+    These are executed in the current working directory.
+    """
+
+    def __init__(self, cmd: str, partition: str, use_env_vars=True, env=None) -> None:
+        """
+        Create a new BashJob.
+
+        Arguments:
+            cmd (str): The command to execute
+            use_env_vars (bool: True): Whether to set environment variables
+            env (dict: None): Custom environment variables to use
+
+        Returns:
+            None
+
+        """
+        self.cmd = cmd
+        self.partition = partition
+        self.use_env_vars = use_env_vars
+        self.env = env if env else {}
+
+    def __str__(self) -> str:
+        """
+        Produce this SlurmJob as a string.
+
+        Returns:
+            str: A human-readable string
+
+        """
+        return f"<SlurmJob [{self.cmd[:10]}]>"
+
+    def __repr__(self) -> str:
+        """
+        Produce this SlurmJob as a string.
+
+        Returns:
+            str: A human-readable string
+
+        """
+        return f"SlurmJob('{self.cmd}', env={self.env})"
+
+    def run(self, env_vars=None, extra_args=None):
+        """
+        Run the command.
+
+        Arguments:
+            env_vars (dict: None): Custom environment variables to use
+
+        Returns:
+            None
+
+        """
+        cmd = self.cmd.replace("'", "\\'")
+
+        extra_args = extra_args or {}
+        extra_args = " ".join(f"--{k}={v}" for k, v in extra_args.items())
+        env = {}
+        if self.use_env_vars:
+            env = {**env_vars, **self.env}
+
+        # Cast all env-vars to string (int/float other types are not supported
+        # by Python's subprocess module).
+        env = {k: str(v) for k, v in env.items()}
+        return f"sbatch {extra_args} --partition={self.partition} --wrap='{cmd}'"
+        return subprocess.check_output(
+            f"sbatch {extra_args} --partition={self.partition} --wrap='{cmd}'",
+            shell=True,
+            env=env,
+        )
+
+
 class NullJob(Job):
     """
     A no-op Job class that doesn't do anything.
