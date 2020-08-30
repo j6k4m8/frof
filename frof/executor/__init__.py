@@ -248,7 +248,7 @@ class SlurmFrofExecutor(abc.ABC):
                                     if deps
                                     else {
                                         "partition": "htc-amd",
-                                        "output": "frof-slurm/output.%a.out",
+                                        "output": "frof-slurm/output.%j.out",
                                     }
                                 )
                             )
