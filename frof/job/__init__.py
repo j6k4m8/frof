@@ -133,7 +133,7 @@ class SlurmJob(BashJob):
         extra_args = " ".join(f"--{k}={v}" for k, v in extra_args.items())
         env = {}
         if self.use_env_vars:
-            env = {**env_vars, **self.env}
+            env = {**(env_vars or {}), **self.env}
 
         # Cast all env-vars to string (int/float other types are not supported
         # by Python's subprocess module).

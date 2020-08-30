@@ -236,10 +236,11 @@ class SlurmFrofExecutor(abc.ABC):
                         [dep in slurm_lookups for dep, _ in network.in_edges(i)]
                     )
                     slurm_id = job.run(
-                        extra_args={
-                            "dependency": f"afterok:{deps}",
-                            "partition": "htc-amd",
-                        }
+                        extra_args=(
+                            {"dependency": f"afterok:{deps}", "partition": "htc-amd",}
+                            if deps
+                            else {"partition": "htc-amd"}
+                        )
                     ).split()[-1]
                     slurm_lookups[i] = slurm_id
                     print(slurm_lookups)
