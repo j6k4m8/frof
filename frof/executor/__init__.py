@@ -227,13 +227,13 @@ class SlurmFrofExecutor(abc.ABC):
     def execute(self) -> None:
         network = self.get_network()
         slurm_lookups = {}
-        nodes_to_run = {i: job for i, job in network.nodes(data=True)}
+        nodes_to_run = {i: job["job"] for i, job in network.nodes(data=True)}
         while len(nodes_to_run) > 0:
             for i, job in nodes_to_run.items():
                 # "Submitted batch job 1097"
-                if all([dep in slurm_lookups for dep, _ in network.in_edges()]):
+                if all([dep in slurm_lookups for dep, _ in network.in_edges(i)]):
                     deps = ":".join(
-                        [dep in slurm_lookups for dep, _ in network.in_edges()]
+                        [dep in slurm_lookups for dep, _ in network.in_edges(i)]
                     )
                     slurm_id = job.run(
                         extra_args={
