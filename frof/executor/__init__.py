@@ -244,4 +244,5 @@ class SlurmFrofExecutor(abc.ABC):
                     slurm_lookups[i] = slurm_id
                     print(slurm_lookups)
                     nodes_to_run.pop(i)
+            time.sleep(2)
             print(nodes_to_run)
