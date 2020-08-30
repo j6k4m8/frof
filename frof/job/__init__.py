@@ -79,7 +79,7 @@ class SlurmJob(BashJob):
     These are executed in the current working directory.
     """
 
-    def __init__(self, cmd: str, partition: str, use_env_vars=True, env=None) -> None:
+    def __init__(self, cmd: str, use_env_vars=True, env=None) -> None:
         """
         Create a new BashJob.
 
