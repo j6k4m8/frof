@@ -228,6 +228,11 @@ class SlurmFrofExecutor(abc.ABC):
             for i, job in nodes_to_run.items():
                 # "Submitted batch job 1097"
                 if all([dep in slurm_lookups for dep, _ in network.in_edges()]):
-                    slurm_id = job.run().split()[-1]
+                    deps = ":".join(
+                        [dep in slurm_lookups for dep, _ in network.in_edges()]
+                    )
+                    slurm_id = job.run(
+                        extra_args={"dependency": f"afterok:{deps}"}
+                    ).split()[-1]
                     slurm_lookups[i] = slurm_id
                     nodes_to_run.remove(i)
