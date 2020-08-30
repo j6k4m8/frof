@@ -60,7 +60,7 @@ class FrofTransformer(Transformer):
 
     def __init__(self, *args, **kwargs) -> None:
         self.G = nx.DiGraph()
-        self.jobclass = kwargs.get("jobclass", BashJob)
+        self.jobclass = kwargs.pop("job_class", BashJob)
         self._params = {}
         self._job_param_assignments = {}
         super().__init__(*args, **kwargs)
