@@ -242,4 +242,6 @@ class SlurmFrofExecutor(abc.ABC):
                         }
                     ).split()[-1]
                     slurm_lookups[i] = slurm_id
+                    print(slurm_lookups)
                     nodes_to_run.remove(i)
+            print(nodes_to_run)
