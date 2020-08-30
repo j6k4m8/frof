@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from frof import LocalFrofExecutor
+from frof import LocalFrofExecutor, SlurmFrofExecutor
 from frof.statusmonitor import (
     HTTPServerStatusMonitor,
     OneLineStatusMonitor,
@@ -13,16 +13,19 @@ import os
 @click.command()
 @click.argument("frof_file")
 @click.option("--max_jobs", "-p", default=None)
+@click.option("--slurm", is_flag=True, default=False)
 @click.option(
     "--status", type=click.Choice(["http", "oneline", "none"]), default="none"
 )
-def cli_main(frof_file: str, max_jobs: int = None, status: str = "none"):
+def cli_main(
+    frof_file: str, max_jobs: int = None, slurm: bool = False, status: str = "none"
+):
     status_monitor = {
         "none": NullStatusMonitor,
         "http": HTTPServerStatusMonitor,
         "oneline": OneLineStatusMonitor,
     }[status]
-    fe = LocalFrofExecutor(
+    fe = (SlurmFrofExecutor if slurm else LocalFrofExecutor)(
         os.path.expanduser(frof_file), max_jobs=max_jobs, status_monitor=status_monitor
     )
     fe.execute()
