@@ -139,7 +139,7 @@ class SlurmJob(BashJob):
         # by Python's subprocess module).
         env = {k: str(v) for k, v in env.items()}
         return subprocess.check_output(
-            f"sbatch {extra_args} --wrap='{cmd}'", shell=True, env=env,
+            f"/opt/ohpc/pub/slurm/current/bin/sbatch {extra_args} --wrap='{cmd}'", shell=True, env=env,
         )
 
 

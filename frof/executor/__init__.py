@@ -242,12 +242,14 @@ class SlurmFrofExecutor(abc.ABC):
                                 extra_args=(
                                     {
                                         "dependency": f"afterok:{deps}",
-                                        "partition": "htc-amd",
+                                        "partition": "htc",
+                                        "mem-per-cpu": "30G",
                                         "output": "frof-slurm/output.%a.out",
                                     }
                                     if deps
                                     else {
-                                        "partition": "htc-amd",
+                                        "partition": "htc",
+                                        "mem-per-cpu": "30G",
                                         "output": "frof-slurm/output.%j.out",
                                     }
                                 )
