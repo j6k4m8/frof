@@ -20,6 +20,18 @@ make_content:   echo "frof runs other frofs" > part_b
 cleanup:        rm part_a part_b
 ```
 
+Run it with:
+
+```bash
+frof simple.frof
+```
+
+Optionally get an HTTP server running a status page with:
+
+```bash
+frof simple.frof --status http
+```
+
 ## installation
 
 ```
