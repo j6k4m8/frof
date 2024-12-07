@@ -128,7 +128,7 @@ class HTTPServerStatusMonitor(StatusMonitor):
             </body>
         </html>
         """.replace(
-            "[[URL]]", "http://0.0.0.0:8111"
+            "[[URL]]", f"http://0.0.0.0:{self.port}"
         )
 
     def _status(self):
